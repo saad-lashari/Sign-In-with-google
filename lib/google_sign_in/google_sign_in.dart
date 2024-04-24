@@ -32,6 +32,10 @@ class GoogleSignInController extends GetxController {
   Future<void> signIn() async {
     user = await _googleSignIn.signIn();
     if (user != null) {
+      final GoogleSignInAuthentication googleAuth = await user!.authentication;
+      final String accessToken = googleAuth.accessToken!;
+
+      log(accessToken.toString());
       Get.to(() => HomeScreen());
     }
   }
@@ -55,6 +59,7 @@ class GoogleSignInController extends GetxController {
       final List<dynamic> messages = data['messages'];
       final List<String> parsedMessages = await _parseMessages(messages);
       mails = parsedMessages;
+      update();
     } else {
       debugPrint('Failed to fetch messages: ${response.statusCode}');
     }
@@ -87,7 +92,7 @@ class GoogleSignInController extends GetxController {
       print('Recipient address is required.');
       return;
     }
-
+    log(mail.recipient);
     final String encodedMessage = _createMessage(
       user!.email,
       mail.recipient,
@@ -103,7 +108,7 @@ class GoogleSignInController extends GetxController {
       headers: await user!.authHeaders,
       body: jsonEncode({'raw': encodedMessage}),
     );
-
+    log(response.body.toString());
     if (response.statusCode == 200) {
       Get.snackbar(
         'Sent',
@@ -127,14 +132,15 @@ class GoogleSignInController extends GetxController {
       String sender, String recipient, String subject, String body) {
     final String encodedSubject = base64Url.encode(utf8.encode(subject));
     final String encodedBody = base64Url.encode(utf8.encode(body));
-    final String message = '''
-  From: $sender
-  To: $recipient
-  Subject: $encodedSubject
-  Content-Type: text/html; charset="UTF-8"
 
-  $encodedBody
-  ''';
+    final String message = '''
+From: $sender
+To: $recipient
+Subject: $encodedSubject
+Content-Type: text/html; charset="UTF-8"
+
+$encodedBody
+''';
     return base64Url.encode(utf8.encode(message));
   }
 }

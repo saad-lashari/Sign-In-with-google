@@ -20,10 +20,7 @@ class _SendScreenState extends State<SendScreen> {
     if (value == null || value.isEmpty) {
       return 'Recipient email is required';
     }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Enter a valid email address';
-    }
+
     return null;
   }
 
@@ -85,7 +82,8 @@ class _SendScreenState extends State<SendScreen> {
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
                       con.sendMessage(Mail(
-                          recipient: recipientController.text,
+                          recipient:
+                              recipientController.text.removeAllWhitespace,
                           subject: subjectController.text,
                           body: bodyController.text));
                     }
